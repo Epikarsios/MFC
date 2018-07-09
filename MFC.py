@@ -6,10 +6,10 @@ crc_func = crcmod.predefined.mkCrcFun('crc-ccitt-false')
 
 def str2_dec_array(str):
 	bin_str = binascii.a2b_qp(str)
-	hex_str = binascii.b2a_hex(bin_str)
+#	hex_str = binascii.b2a_hex(bin_str)
+	hex_str = str.encode("utf-8").hex()
 
-
-	hex_crc_temp = hex(crc_func(hex_str))
+	hex_crc_temp = hex(crc_func(bin_str))
 	hex_crc = hex_crc_temp[2:]
 
 	hex_crc_full = hex_str+hex_crc+"0d"
@@ -23,7 +23,7 @@ def str2_dec_array(str):
 
 
 #	dec_array.append(Term)
-	dec_array = [int(hex_crc_full[i:i+2],16) for i in range(0,len(msg),2)]
+	dec_array = [int(hex_crc_full[i:i+2],16) for i in range(0,len(hex_crc_full),2)]
 	
 	return dec_array
 
