@@ -1,3 +1,4 @@
+from Tkinter import *
 import sys
 sys.path.insert(0,'/home/Dlab/MFC')
 from MFC import MFC
@@ -18,7 +19,7 @@ Message = Text(app, text="Sierra Instruments Micro Trak 101")
 text = Text(app)
 button = PushButton(app,text ="Enter",command = get_Text)
 mywindow = Window(app, title = "Flow")
-mytext = Text(mywindow,text= "The flow is ")
+mytext = Text(mywindow,text= "The SetPoint is ")
 flowtext = Text(mywindow)
 Cmd =Text(mywindow)
 input_box = TextBox(app,text = "0.000")
