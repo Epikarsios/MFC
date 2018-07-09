@@ -5,23 +5,26 @@ import binascii
 crc_func = crcmod.predefined.mkCrcFun('crc-ccitt-false')
 
 def str2_dec_array(str):
-	hex_str = binascii.b2a_hex(str)
+	bin_str = binascii.a2b_qp(str)
+	hex_str = binascii.b2a_hex(bin_str)
 
 
-	hex_crc_temp = hex(crc_func(str))
+	hex_crc_temp = hex(crc_func(hex_str))
 	hex_crc = hex_crc_temp[2:]
 
-
+	hex_crc_full = hex_str+hex_crc+"0d"
 	dec_array = []
-	Term = 13
-	for i in hex_str.decode("hex"):
-		dec_array.append(ord(i))
+#	Term = 13
+#	for i in hex_str.decode("hex"):
+#		dec_array.append(ord(i))
+#
+#	for j in hex_crc.decode("hex"):
+#		dec_array.append(ord(j))
 
-	for j in hex_crc.decode("hex"):
-		dec_array.append(ord(j))
 
-
-	dec_array.append(Term)
+#	dec_array.append(Term)
+	dec_array = [int(hex_crc_full[i:i+2],16) for i in range(0,len(msg),2)]
+	
 	return dec_array
 
 class MFC:
