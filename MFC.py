@@ -73,3 +73,7 @@ class MFC:
 		str_Cmd = '!Strm'+ Value
 		dec_array = str2_dec_array(str_Cmd)
 		return dec_array
+	def Sync_Read(self):
+		str_Cmd = '?Sync'
+		dec_array = str2_dec_array(str_Cmd)
+		return dec_array
