@@ -3,13 +3,25 @@ sys.path.insert(0,'/home/Dlab/MFC')
 
 from MFC import MFC
 import ChkUsrInputX
+from dataLogger import dataLogger
 import serial
 from guizero import App,Text, PushButton, Window, TextBox, warn, MenuBar, yesno, Box
-
+log = dataLogger()
 flow = MFC()     #Creates instance of MFC Class containing functions for generating cmd to be sent
 
 # s = serial.Serial('/dev/ttyUSB0')    # Creates Serial object 
+log_path_name = ""
+def start_logging():
+	
+	log_path_name = log.create_filename()
+	logbox =Box(logwindow)
 
+def log_data():
+	log.write_file(log_path_name)
+
+def log_window():
+	logwindow = Window(app)
+	logbutton = PushButton(logwindow, text = "Start Logging",command =start_logging  )
 def counter():
 	print("Worked")
 
@@ -35,13 +47,14 @@ def get_Text():                         # Function to take value of number enter
 		warn("Oops","Not a Valid Number.")
 
 file_op = [ ["File",file_Exit ], ["file2", get_Text] ]
-edit_op = [ ["edit1", get_Text], ["edit2", get_Text] ]
+edit_op = [ ["log window", log_window], ["edit2", get_Text] ]
 app = App(title="Mass Flow Control")
 menuebar =MenuBar(app, ["File", "Edit"], [file_op, edit_op])
 box = Box(app)
 box.bg="red"
 box.height =200
 box.repeat(1000,counter)
+#logbox.repeat(1000,log_data )
 #box.tk.configure(height =200, width = 200, background = "blue")
 #for child in box.tk.winfo_children():
 #	child.configure(background="blue")
