@@ -11,7 +11,7 @@ def chkUsrNum(str_Cmd):
 			print('Too many decimal points.')
 			return False
 		else:
-			if float(str_Cmd)> 0.0009 and float(str_Cmd)< 10:
+			if float(str_Cmd)> 0.0009 and float(str_Cmd)< 10 or float(str_Cmd)==0:
 				print( 'Valid number')
 				return True
 			else:
