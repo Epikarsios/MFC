@@ -1,8 +1,8 @@
 import sys
 sys.path.insert(0,'/home/Dlab/MFC')
-from guizero import App, Box, PushButton, Text, Window, MenuBar, warn, yesno, ListBox
+from guizero import App, TextBox,  Box, PushButton, Text, Window, MenuBar, warn, yesno, ListBox
 from dataLogger import dataLogger
-
+from gas_to_moles import moles_to_ccm
 
 
 
@@ -29,21 +29,40 @@ def ask_to_close():     # Propmts User before Program Exits
 def Run_Exp_Conf():
 	exp_Window.show()
 	exp_Window.enable()
-
+	ccm_gas_text.disable()
 def select_gas():
 	print("gas")
 
 def select_mass():
 	exp_Gas_list.disable()
 	exp_Gas_list.hide()
+	select_gas_button.disable()
+	select_gas_button.hide()
+	select_mass_button.enable()
+	select_mass_button.show()
 	print(exp_Gas_list.value)
-	exp_units_list.enable()
-	exp_units_list.show()
+
 	exp_Gas_text.value = exp_Gas_list.value
 	exp_Gas_text.show()
+	enter_moles_textbox.show()
 
 def select_flow():
 	print("flow")
+	select_mass_button.disable()
+	select_mass_button.hide()
+	enter_moles_textbox.disable()
+	enter_moles_textbox.hide()
+	exp_units_list.enable()
+#	ccm_gas_test.value = "high"
+	ccm_gas_text.enable()
+	ccm_gas_text.show()
+	exp_units_list.show()
+	print(enter_moles_textbox.value)
+	print("ccm", ccm_gas_text.value)
+	ccm_gas_text.value = moles_to_ccm(enter_moles_textbox.value, exp_Gas_list.value)
+#	ccm_gas_text.value = "hey"
+	print(moles_to_ccm(enter_moles_textbox.value, exp_Gas_list.value))
+
 
 
 def select_units():
@@ -69,7 +88,9 @@ select_gas_button = PushButton(exp_Window, text = "Next",command = select_mass)
 exp_Gas_text =Text(exp_Window, text =exp_Gas_list.value, visible = 0 )
 exp_units_list = ListBox(exp_Window, items = [ "ssc/s", "ssc/m", "kg/m", "g/m"], selected = "ssc/m",command = select_units, scrollbar = True, visible = 0  )
 select_mass_button = PushButton(exp_Window, text = "Next", command = select_flow, visible = 0)
+enter_moles_textbox =TextBox(exp_Window,text = 0, visible =0)
 
+ccm_gas_text = Text(exp_Window, text =" 0" )
 
 
 ## MenuBar Widigets

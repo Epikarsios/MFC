@@ -11,7 +11,9 @@ molarmass_oxygen = float(15.999) # grams per mol
 
 
 def moles_to_ccm( Moles,Gas):
-	
+
+	molarmass= 0
+
 	if  Gas =="Oxygen":
 		density = density_oxygen
 		molarmass = molarmass_oxygen
@@ -22,7 +24,21 @@ def moles_to_ccm( Moles,Gas):
 		density = density_hydrogen
 	elif Gas == "Air": 
 		density = density_air
+
+
 	uMoles = float(Moles)*(0.000001)
 	grams =	float(uMoles) * molarmass
 	cubic_centimeters = grams / density
 	return cubic_centimeters
+
+
+def time_of_flow(vol, units):
+	
+	if units == "scc/m":
+		sec_total =vol/60
+		if sec_total >= 60:
+			mins = sec_total/60
+			return mins
+		else:
+			sec = sec_total 
+			return sec
