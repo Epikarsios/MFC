@@ -1,12 +1,19 @@
 import sys
 sys.path.insert(0,'/home/Dlab/MFC')
+from MFC import MFC
+import serial
 from guizero import App, TextBox,  Box, PushButton, Text, Window, MenuBar, warn, yesno, ListBox
 from dataLogger import dataLogger
-from gas_to_moles import moles_to_ccm
-
+#from gas_to_moles import moles_to_ccm
+import  ChkUsrInputX
 file_name = ""
 log = dataLogger()
 logbool = 1
+
+#s = serial.Serial('/dev/ttyUSB0')
+
+
+flow = MFC()
 ## Log Functions
 def enable_Log():	# Opens Logging Window
 	logWin.show()
@@ -46,101 +53,110 @@ def ask_to_close():     # Propmts User before Program Exits
 
 ## Eperiment Functions
 
-def Run_Exp_Conf():          # Begin Experiment Configuration   Starts with choosing Gas
-	gui.hide()
-	close_select_moles()
-	exp_Window.show()
-	exp_Window.enable()
-	cancel_exp_button.enable()
-	cancel_exp_button.show()
-	select_gas_button.enable()
-	select_gas_button.show()
-	exp_Gas_list.enable()
-	exp_Gas_list.show()
+          # Begin Experiment Configuration   Starts with choosing Gas
+
 def close_Exp_Conf():
 	exp_Window.disable()
 	exp_Window.hide()
+	gui.show()
+def select_gas():
 
-def close_select_gas():
-	cancel_exp_button.disable()
-	cancel_exp_button.hide()
-	select_gas_button.disable()
-	select_gas_button.hide()
-	exp_Gas_list.disable()
-	exp_Gas_list.hide()
-	
-#def select_gas():
-#	print("gas")
+	print("select gas")
+	gasBox.enable()
+	gasBox.show()
+	moleBox.disable()
+	moleBox.hide()
+	exp_Window.show()
+	exp_Window.enable()
+def set_gas():
+	flow.set_Gas(gas_list.value)
+
 
 def select_moles():
-	close_select_gas()
-	close_select_flow()
-	enter_moles_button.enable()
-	enter_moles_button.show()
-	enter_moles_textbox.enable()
-	enter_moles_textbox.show()
-	back_moles_button.enable()
-	back_moles_button.show()
-	exp_Gas_text.value = exp_Gas_list.value
-	exp_Gas_text.show()
-	enter_moles_textbox.show()
+	set_gas()
 
-def close_select_moles():
-	enter_moles_button.disable()
-	enter_moles_button.hide()
-	enter_moles_textbox.disable()
-	enter_moles_textbox.hide()
-	back_moles_button.disable()
-	back_moles_button.hide()
+	gasBox.disable()
+	print("Moles")
+	gasBox.hide()
+
+	flowBox.disable()
+	flowBox.hide()
+
+	gas_text.value = flow.gas_Type
+	moleBox.enable()
+	moleBox.show()
+
+
+def set_moles():
+	if ChkUsrInputX.chkUsrNumMole(enter_moles_textbox.value):
+		flow.set_Moles(enter_moles_textbox.value)
+		flow.moles_to_ccm()
+		select_flow()
+	else:
+		warn("Oops", "Not a Valid Number")
+
+
+		select_moles()
+		print("hide moles")
 def select_flow():
-	
-	close_select_moles()
+	confirmBox.disable()
+	confirmBox.hide()
+	moleBox.disable()
+	moleBox.hide()
+	ccm_gas_text.value =flow.volume
+	flowBox.enable()
+	flowBox.show()
 
-	## Enable and Show new widgets
-	exp_units_list.enable()
-	ccm_gas_text.enable()
-	ccm_gas_text.show()
-	exp_units_list.show()
-
-	ccm_gas_text.value = moles_to_ccm(enter_moles_textbox.value, exp_Gas_list.value) 
-	run_exp_button.enable()
-	run_exp_button.show()
-	back_flow_button.enable()
-	back_flow_button.show()
-	flow_rate_textbox.enable()
-	flow_rate_textbox.show()
-def close_select_flow():
-	exp_units_list.disable()
-	exp_units_list.hide()
-	ccm_gas_text.disable()
-	ccm_gas_text.hide()
-	back_flow_button.disable()
-	back_flow_button.hide()
-	run_exp_button.disable()
-	run_exp_button.hide()
-	flow_rate_textbox.disable()
-	flow_rate_textbox.hide()
+def set_flow():
+	if ChkUsrInputX.chkUsrNumSetPoint(flow_rate_textbox.value):
+		print(flow_rate_textbox.value)
+		flow.set_flow_Rate(flow_rate_textbox.value)
+	else:
+		warn("Oops", "Not a Valid Number")
+		select_flow()
+def set_units():
+	flow.set_Units(exp_units_list.value)
+	print("set units gui")
+	print(exp_units_list.value)
+def confirm_Experiment():
+	set_flow()
+	set_units()
+	flowBox.disable()
+	flowBox.hide()
+	confirm_moles_text.value = flow.moles
+	confirm_flow_rate_text.value = flow.flow_Rate
+	print("estimated")
+	print(flow.time_Estimated_str)
+	confirm_time_est_text.value = flow.time_Estimated_str
+	print(flow.flow_Rate)
+	confirmBox.enable()
+	confirmBox.show()
 def RUN_Experiment():
 	global logbool
-	close_select_flow()
+	confirmBox.disable()
+	confirmBox.hide()
 	close_Exp_Conf()
 	print("Running")
-	print(flow_rate_textbox.value)
 	prime_log()
-	print(file_name)
+
+
 	progress_Win.enable()
 	progress_Win.show()
-#	progress_box =Box(gui)
-#	progress_box.repeat(3000,RUN_log())
+
 	abort_exp_button.enable()
 	abort_exp_button.show()
 	logbool = 1
+	flowrate = flow.SetPoint_Write(flow_rate_textbox.value)
+
+
+#	s.write(flowrate)
 def ABORT_Experiment():
 
 	global logbool
+	# s.write(flow.SetPoint_Write("0.000"))    ##  Set Flow to Zero on Abort
 	progress_Win.disable()
 	progress_Win.hide()
-#	progress_box.disable()
+
 	abort_exp_button.disable()
 	abort_exp_button.hide()
 	logbool= 0
@@ -160,33 +176,46 @@ closeLog_logwin_button = PushButton(logWin, text ="Close Log", command = close_L
 exp_Window = Window(gui, title = "Experiment",height=300, width = 500, visible = 0)
 
                     ## Choose Gas Widgests
-exp_Gas_list = ListBox(exp_Window, items =["Air", "Oxygen", "Hydrogen", "Nitrogen"], selected = "Air",visible = 0, scrollbar = True)
-select_gas_button = PushButton(exp_Window, text = "Next",command = select_moles, visible = 0)
-cancel_exp_button = PushButton(exp_Window, text = "Cancel" , command = close_Exp_Conf, visible = 0)
+
+gasBox = Box(exp_Window, visible = 0)
+gas_list = ListBox(gasBox, items =["Air", "Oxygen", "Hydrogen", "Nitrogen"], selected = "Air", scrollbar = True)
+select_gas_button = PushButton(gasBox, text = "Next",command = select_moles)
+cancel_exp_button = PushButton(gasBox, text = "Cancel" , command = close_Exp_Conf)
 		    ## Choose micro moles
-exp_Gas_text =Text(exp_Window, text =exp_Gas_list.value, visible = 0 )
-enter_moles_button = PushButton(exp_Window, text = "Next", command = select_flow, visible = 0)
-enter_moles_textbox =TextBox(exp_Window,text = 0, visible =0)
-back_moles_button  = PushButton(exp_Window, text = "Back", command = Run_Exp_Conf, visible = 0)
+moleBox = Box(exp_Window, visible = 0)
+gas_text =Text(moleBox, text = "" )
+enter_moles_button = PushButton(moleBox, text = "Next", command = set_moles)
+enter_moles_textbox =TextBox(moleBox,text = 0)
+back_moles_button  = PushButton(moleBox, text = "Back", command = select_gas)
 
 		 ## Choose flow rate
-ccm_gas_text = Text(exp_Window, text =" 0", visible = 0 )
-exp_units_list = ListBox(exp_Window, items = [ "scc/s", "ssc/m", "kg/m", "g/m"], selected = "scc/m", scrollbar = True, visible = 0  )
-back_flow_button = PushButton(exp_Window, text = "Back",command = select_moles, visible = 0 )
-run_exp_button = PushButton(exp_Window, text = "Run", command = RUN_Experiment, visible = 0)
-flow_rate_textbox = TextBox(exp_Window, text = 0.1,visible = 0 )
+
+flowBox = Box(exp_Window, visible = 0)
+ccm_gas_text = Text(flowBox, text = 0 )
+exp_units_list = ListBox(flowBox, items = [ "scc/s", "scc/m", "kg/m", "g/m"], selected = "scc/m", scrollbar = True  )
+back_flow_button = PushButton(flowBox, text = "Back",command = select_moles )
+confirm_exp_button = PushButton(flowBox, text = "Confirm", command = confirm_Experiment)
+flow_rate_textbox = TextBox(flowBox, text = 0.100  )
+
+		## Confirm Experiment ##
+confirmBox = Box(exp_Window, visible = 0)
+RUN_button = PushButton(confirmBox, text = "Run", command = RUN_Experiment)
+confirm_flow_rate_text = Text(confirmBox)
+confirm_back_button = PushButton(confirmBox, text = "Back", command = select_flow)
+confirm_moles_text = Text(confirmBox)
+confirm_time_est_text = Text(confirmBox)
 
 		## Experiment Progres Window
 
-progress_Win = Window(gui,height = 300 , width = 500, title = "Experiment Progress", visible = 0)
+#progress_Win = Window(gui,height = 300 , width = 500, title = "Experiment Progress", visible = 0)
 #progress_box = Box(progress_Win)
-abort_exp_button = PushButton(progress_Win, text= "Abort Experiment",command = ABORT_Experiment, visible = 0)
+#abort_exp_button = PushButton(progress_Win, text= "Abort Experiment",command = ABORT_Experiment, visible = 0)
 
 logBox = Box(gui, enabled = 0)
 
 
 ## MenuBar Widigets
-File_options = [["Prepare Experiment", Run_Exp_Conf], ["Exit", ask_to_close] ]
+File_options = [["Prepare Experiment", select_gas], ["Exit", ask_to_close] ]
 DataLog_options = [ ["Open Log", enable_Log ] ]
 
 
