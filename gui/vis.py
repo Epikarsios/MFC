@@ -137,7 +137,7 @@ def RUN_Experiment():
 	confirmBox.hide()
 	close_Exp_Conf()
 	print("Running")
-	prime_log()
+#	prime_log()
 
 
 	progress_Win.enable()
@@ -146,19 +146,40 @@ def RUN_Experiment():
 	abort_exp_button.enable()
 	abort_exp_button.show()
 	logbool = 1
-	flowrate = flow.SetPoint_Write(flow_rate_textbox.value)
 
 
-#	s.write(flowrate)
+	flowCmd = flow.SetPoint_Write(flow.flow_Rate)
+#	s.write(flowCmd)
+
+	flow.create_filename()
+	updateBox =Box(progressBox)
+	updateBox.repeat(3000,Update_Progress)
+def Update_Progress():
+	flow.write_file()
+	print(flow.time_Remaining)	
+	time_remain_text.value = flow.time_Remaining_str
+	volume_remain_text.value = flow.volume_Remaining_str
+	if flow.volume_Remaining <= 0.001:
+		STOP_Flow()
+		progress_Win.destroy()
+		finished_Win.enable()
+		finished_Win.show()
+
+def STOP_Flow():
+	#s.write(flow.SetPoint_Write("0.000"))
+	print("Stop Flow")
+	
 def ABORT_Experiment():
 
 	global logbool
 	# s.write(flow.SetPoint_Write("0.000"))    ##  Set Flow to Zero on Abort
 	progress_Win.disable()
 	progress_Win.hide()
-
-	abort_exp_button.disable()
-	abort_exp_button.hide()
+#	progressBox.cancel(Update_Progress)
+	progressBox.disable
+	progressBox.hide()
+	progress_Win.destroy()
+	progressBox.destroy()
 	logbool= 0
 	print(logbool)
 	logBox.destroy()
@@ -207,11 +228,20 @@ confirm_time_est_text = Text(confirmBox)
 
 		## Experiment Progres Window
 
-#progress_Win = Window(gui,height = 300 , width = 500, title = "Experiment Progress", visible = 0)
-#progress_box = Box(progress_Win)
-#abort_exp_button = PushButton(progress_Win, text= "Abort Experiment",command = ABORT_Experiment, visible = 0)
-
+progress_Win = Window(gui,height = 300 , width = 500, title = "Experiment Progress", visible = 0)
+progressBox = Box(progress_Win)
+abort_exp_button = PushButton(progressBox, text= "Abort Experiment",command = ABORT_Experiment)
+time_remaining_str = Text(progressBox, text = "Estimated Time Remaining ")
+time_remain_text = Text( progressBox)
+volume_remaining_str = Text(progressBox, text = "Volume Remaining ")
+volume_remain_text = Text(progressBox)
 logBox = Box(gui, enabled = 0)
+
+
+		## Finished win
+finished_Win = Window(gui, title = "Operation Complete", visible = 0)
+
+
 
 
 ## MenuBar Widigets

@@ -57,21 +57,25 @@ class MFC:
 	flow_Rate_str = ""
 	low_Flow = 0.100
 	volume = 0
+	volume_Transfered = 0
+	volume_Remaining =0
+	volume_Remaining_str = ""
+	instantaneous_volume_Transfered = 0
 	mass = 20;
 	mass_Transfered = 13
 	mass_Remaining = 0
 
 	units_Type = ""
 
-
+	
 	time_Estimated = 0
 	time_Estimated_str = ""
 	time_Passed = 0
 	time_Passed_str = ""
-
+	time_Interval = 0
 	time_Remaining = 0
-	time_Remaining_str = 0
-
+	time_Remaining_str = ""
+	temp_epoch_time = 0
 
 	default_path = "/home/Dlab/MFC/Logs/temp_Logs/"
 	default_type = ".txt"
@@ -82,6 +86,19 @@ class MFC:
 
 #	def get_Flow_Rate():
 
+	def Volume_Remaining(self):
+		self.volume_Remaining =   self.volume - self.volume_Transfered
+		self.volume_Remaining_str = format_Value(self.volume_Remaining)
+		return self.volume_Remaining
+
+	def Volume_Transfered(self):
+		volume_Temp = self.volume_Transfered + self.instantaneous_volume_Transfered
+		self.volume_Transfered = volume_Temp
+		print("Vol transfered", self.volume_Transfered)
+	def Instantaneous_Volume_Transfered(self):
+		if self.units_Type == "scc/m":
+			self.instantaneous_volume_Transfered = (float(self.flow_Rate)/60) * float(self.time_Interval)
+			print("instan vol transfered", self.instantaneous_volume_Transfered)
 
 	def Mass_Remaining(self  ):
 		self.mass_Remaining = self.mass - self.mass_Transfered
@@ -98,8 +115,9 @@ class MFC:
 		return dec_array
 
 	def SetPoint_Write(self,Value):
-		str_Cmd = '!Setf'+  format_Value(Value)  #Creates str from Cmd and Val 
+		str_Cmd = '!Setf'+  format_Value(float(Value))  #Creates str from Cmd and Val 
 		dec_array = str2_dec_array(str_Cmd) #str+crc+cr array 
+		print (dec_array)
 		return dec_array
 
 	def Flow_Read(self):
@@ -235,7 +253,7 @@ class MFC:
 		f = open(self.path_filename,"a")
 		f.write("Epoch_Time\tFlow_Rate\n ")
 		self.Experiment_Start_Time = time.time()
-		return path_filename
+		return self.path_filename
 
 	def write_file(self):
 		epoch_time = time.time()
@@ -246,13 +264,18 @@ class MFC:
 		f.write(epoch_time_str)
 		f.write("\t")
 		f.write(flow_Rate_str)
-		f,write("\n")
+		f.write("\n")
 		f.close()
-		self.time_Interval = epoch_time - temp_epoch_time
-		self.time_Passed = epoch_time - self.Experiment.Start.Time
+		self.time_Interval = (epoch_time - self.Experiment_Start_Time)  - self.temp_epoch_time
+		print("time int ", self.time_Interval)
+		self.temp_epoch_time = (epoch_time- self.Experiment_Start_Time)
+		self.Instantaneous_Volume_Transfered()
+		self.time_Passed = epoch_time - self.Experiment_Start_Time
+		self.Volume_Transfered()
 		## add the time decoder here to create string time h m s
 		self.time_Passed_str = self.time_decode(self.time_Passed)
-		self.time_Remaining = self.mass_remaining / self._flow_Rate
+		self.Volume_Remaining()
+		self.time_Remaining =float( self.volume_Remaining) / (float(self.flow_Rate)/60)
 		self.time_Remaining_str = self.time_decode(self.time_Remaining)
 
 
