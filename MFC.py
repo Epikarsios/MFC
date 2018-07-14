@@ -53,7 +53,8 @@ class MFC:
 	molarmass = 0
 	moles = 0
 	density = 0
-	flow_Rate = 0
+	Exp_flow_Rate =  0.000
+	flow_Rate = 0.00
 	flow_Rate_str = ""
 	low_Flow = 0.100
 	volume = 0
@@ -105,6 +106,11 @@ class MFC:
 		return self.mass_Remaining
 
 #	def Mass_Transfered(self, )
+
+
+	def set_Exp_flow_Rate(self,Value):
+		self.Exp_flow_Rate = format_Value(float(Value)) 
+
 
 	def set_flow_Rate(self,Value):
 		self.flow_Rate =format_Value(float(Value))
@@ -188,7 +194,7 @@ class MFC:
 	def set_Units(self, Units):
 		if Units == "scc/m":
 			self.units_Type = Units
-			time_Estimated = float(self.volume) / (float(self.flow_Rate)/ 60)
+			time_Estimated = float(self.volume) / (float(self.Exp_flow_Rate)/ 60)
 			self.time_Estimated_str = self.time_decode(time_Estimated)
 			print("set units")
 			print(self.time_Estimated_str)
@@ -275,7 +281,12 @@ class MFC:
 		## add the time decoder here to create string time h m s
 		self.time_Passed_str = self.time_decode(self.time_Passed)
 		self.Volume_Remaining()
-		self.time_Remaining =float( self.volume_Remaining) / (float(self.flow_Rate)/60)
+		if float(self.flow_Rate) <= 0.0001:
+			flow_Rate_Temp = 0.000001
+		else:
+			flow_Rate_Temp = float(self.flow_Rate)
+
+		self.time_Remaining =float( self.volume_Remaining) / (flow_Rate_Temp/60)
 		self.time_Remaining_str = self.time_decode(self.time_Remaining)
 
 

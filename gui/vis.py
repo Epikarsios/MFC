@@ -6,14 +6,56 @@ from guizero import App, TextBox,  Box, PushButton, Text, Window, MenuBar, warn,
 from dataLogger import dataLogger
 #from gas_to_moles import moles_to_ccm
 import  ChkUsrInputX
+import binascii
+
+
 file_name = ""
 log = dataLogger()
 logbool = 1
-
-#s = serial.Serial('/dev/ttyUSB0')
-
-
 flow = MFC()
+CR =b'\r'
+s = serial.Serial('/dev/ttyUSB0')
+
+
+
+def get_flow_Rate():
+	s.write(flow.Flow_Read())
+
+	a = s.read_until(CR)
+	print("read until cr  ", a)
+
+	a_hex =  binascii.hexlify(a)    ## turns in to byte  b''  hex
+	# print("hexlify", a_hex)
+
+	a_hex_str = str(a_hex)
+	# print("str(a_hex) a_hex", a_hex_str)
+
+	str_hex =  a_hex_str[2:-7]
+	# print("Change length", str_hex)
+
+	un_hex = binascii.unhexlify(str_hex)
+#	print("unhexlify", un_hex)
+
+	un_hex_str = str(un_hex)
+	print("String unhex", un_hex_str)
+
+	value = un_hex_str[6:-1]
+	#  print("Value =", value)
+
+	fValue = float(value)
+	print("Flow Rate is ",fValue)
+	flow.set_flow_Rate(fValue)
+
+
+
+
+
+
+
+
+
+
+
 ## Log Functions
 def enable_Log():	# Opens Logging Window
 	logWin.show()
@@ -110,7 +152,7 @@ def select_flow():
 def set_flow():
 	if ChkUsrInputX.chkUsrNumSetPoint(flow_rate_textbox.value):
 		print(flow_rate_textbox.value)
-		flow.set_flow_Rate(flow_rate_textbox.value)
+		flow.set_Exp_flow_Rate(flow_rate_textbox.value)
 	else:
 		warn("Oops", "Not a Valid Number")
 		select_flow()
@@ -124,11 +166,11 @@ def confirm_Experiment():
 	flowBox.disable()
 	flowBox.hide()
 	confirm_moles_text.value = flow.moles
-	confirm_flow_rate_text.value = flow.flow_Rate
-	print("estimated")
-	print(flow.time_Estimated_str)
+	confirm_flow_rate_text.value = flow.Exp_flow_Rate
+
+
 	confirm_time_est_text.value = flow.time_Estimated_str
-	print(flow.flow_Rate)
+
 	confirmBox.enable()
 	confirmBox.show()
 def RUN_Experiment():
@@ -148,15 +190,17 @@ def RUN_Experiment():
 	logbool = 1
 
 
-	flowCmd = flow.SetPoint_Write(flow.flow_Rate)
-#	s.write(flowCmd)
+	flowCmd = flow.SetPoint_Write(flow.Exp_flow_Rate)
+	s.write(flowCmd)
 
 	flow.create_filename()
 	updateBox =Box(progressBox)
-	updateBox.repeat(3000,Update_Progress)
+	updateBox.repeat(2000,Update_Progress)
 def Update_Progress():
+	get_flow_Rate()
+	flowrate_text.value = flow.flow_Rate
 	flow.write_file()
-	print(flow.time_Remaining)	
+
 	time_remain_text.value = flow.time_Remaining_str
 	volume_remain_text.value = flow.volume_Remaining_str
 	if flow.volume_Remaining <= 0.001:
@@ -166,13 +210,13 @@ def Update_Progress():
 		finished_Win.show()
 
 def STOP_Flow():
-	#s.write(flow.SetPoint_Write("0.000"))
+	s.write(flow.SetPoint_Write("0.000"))
 	print("Stop Flow")
 	
 def ABORT_Experiment():
 
 	global logbool
-	# s.write(flow.SetPoint_Write("0.000"))    ##  Set Flow to Zero on Abort
+	s.write(flow.SetPoint_Write("0.000"))    ##  Set Flow to Zero on Abort
 	progress_Win.disable()
 	progress_Win.hide()
 #	progressBox.cancel(Update_Progress)
@@ -236,7 +280,8 @@ time_remain_text = Text( progressBox)
 volume_remaining_str = Text(progressBox, text = "Volume Remaining ")
 volume_remain_text = Text(progressBox)
 logBox = Box(gui, enabled = 0)
-
+flowrate_str = Text(progressBox, text = "Flow Rate is ")
+flowrate_text = Text(progressBox)
 
 		## Finished win
 finished_Win = Window(gui, title = "Operation Complete", visible = 0)
